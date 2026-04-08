@@ -9,6 +9,8 @@ import re
 import socket
 import platform
 from pathlib import Path
+import argparse
+import sys
 import configparser
 
 # =========================
@@ -94,7 +96,7 @@ def colorize(host: str, rtt, status: str):
 # =========================
 # APP
 # =========================
-class PingApp(App):
+class PingPing(App):
     # Add 'q' binding to quit (Shown in footer)
     BINDINGS = [
         Binding("q","quit","Quit", show=True),
@@ -220,14 +222,28 @@ class PingApp(App):
 # ENTRY POINT
 # =========================
 if __name__ == "__main__":
-    config_path = Path("pingping.conf")
+    parser = argparse.ArgumentParser(description="PingPing TUI - Real-time multi-host ping monitor")
+    parser.add_argument(
+        "-c", "--config",
+        type=str,
+        default="pingping.conf",
+        help="Path to config file (default: pingping.conf)"
+    )
+    args = parser.parse_args()
+    config_path = Path(args.config)
 
-    if config_path.exists():
-        tree_data = build_tree(config_path)
-    else:
-        tree_data = {
-            "hosts": ["8.8.8.8", "1.1.1.1"],
-            "children": {}
-        }
+    try:
+        if config_path.exists():
+            tree_data = build_tree(config_path)
+            print(f"Loaded config: {config_path}")
+        else:
+            print(f"Config file '{config_path}' not found.  Using default hosts.")
+            tree_data = {
+                "hosts": ["8.8.8.8", "1.1.1.1"],
+                "children": {}
+            }
+    except Exception as e:
+        print(f"Error loading config: {0}")
+        sys.exit(1)
 
-    PingApp(tree_data).run()
+    PingPing(tree_data).run()
