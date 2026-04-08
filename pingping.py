@@ -2,6 +2,7 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Tree, Static
 from textual.containers import Horizontal
+from textual.binding import Binding
 import asyncio
 import subprocess
 import re
@@ -94,6 +95,11 @@ def colorize(host: str, rtt, status: str):
 # APP
 # =========================
 class PingApp(App):
+    # Add 'q' binding to quit (Shown in footer)
+    BINDINGS = [
+        Binding("q","quit","Quit", show=True),
+        Binding("r","force_refresh", "Refresh", show=True),
+    ]
     CSS = """
     Screen {
         layout: vertical;
@@ -171,6 +177,15 @@ class PingApp(App):
             self.build_ui_tree(branch, child)
 
     async def refresh_pings(self):
+        """Auto-refresh (called by interval)"""
+        await self._do_refresh()
+
+    async def action_force_refresh(self):
+        """Force refresh when user presses 'r'"""
+        await self._do_refresh()
+        
+
+    async def _do_refresh(self):
         tasks = []
         for host in list(self.host_nodes.keys()):
             tasks.append(self._ping_one(host))
